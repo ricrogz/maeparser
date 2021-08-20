@@ -56,16 +56,16 @@ else(MAEPARSER_BUILD_SHARED_LIBS)
 endif(MAEPARSER_BUILD_SHARED_LIBS)
 
 find_package(Boost COMPONENTS iostreams REQUIRED)
-target_link_libraries(maeparser PRIVATE Boost::iostreams)
+target_link_libraries(maeparser PUBLIC Boost::iostreams)
 
 find_package(Boost COMPONENTS zlib QUIET)
 if(Boost_ZLIB_FOUND)
     message(STATUS "Using Boost::zlib for iostreams dependency.")
-    target_link_libraries(maeparser PRIVATE Boost::zlib)
+    target_link_libraries(maeparser PUBLIC Boost::zlib)
 else(Boost_ZLIB_FOUND)
     find_package(ZLIB REQUIRED)
     message(STATUS "Using ZLIB::ZLIB library for iostreams dependency.")
-    target_link_libraries(maeparser PRIVATE ZLIB::ZLIB)
+    target_link_libraries(maeparser PUBLIC ZLIB::ZLIB)
 endif(Boost_ZLIB_FOUND)
 
 target_include_directories(maeparser PUBLIC

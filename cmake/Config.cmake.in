@@ -4,4 +4,17 @@ include("${CMAKE_CURRENT_LIST_DIR}/maeparser-targets.cmake")
 
 check_required_components(maeparser)
 
+set(MAEPARSER_BUILD_SHARED_LIBS @MAEPARSER_BUILD_SHARED_LIBS@)
+
+# Check for the dependencies
+include(CMakeFindDependencyMacro)
+
+find_dependency(Boost @Boost_VERSION_STRING@ COMPONENTS iostreams REQUIRED)
+
+if (@ZLIB_FOUND@)
+find_dependency(ZLIB @ZLIB_VERSION_STRING@ REQUIRED)
+else()
+find_dependency(Boost @Boost_VERSION_STRING@ COMPONENTS zlib REQUIRED)
+endif()
+
 message(STATUS "Configuring with maeparser ${maeparser_VERSION} @ ${PACKAGE_PREFIX_DIR}")
