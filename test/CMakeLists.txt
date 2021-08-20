@@ -7,14 +7,12 @@ add_executable(unittest MainTestSuite.cpp BufferTest.cpp MaeBlockTest.cpp MaePar
 
 if(MAEPARSER_BUILD_SHARED_LIBS)
     target_compile_definitions(unittest PRIVATE "BOOST_ALL_DYN_LINK")
-else(MAEPARSER_BUILD_SHARED_LIBS)
-    target_compile_definitions(unittest PRIVATE "STATIC_MAEPARSER")
 endif(MAEPARSER_BUILD_SHARED_LIBS)
 
 get_filename_component(TEST_SAMPLES_PATH ${CMAKE_CURRENT_SOURCE_DIR} ABSOLUTE)
 target_compile_definitions(unittest PRIVATE "TEST_SAMPLES_PATH=\"${TEST_SAMPLES_PATH}\"")
 
-target_link_libraries(unittest maeparser ${Boost_LIBRARIES})
+target_link_libraries(unittest maeparser Boost::filesystem Boost::unit_test_framework)
 
 add_test(NAME unittest COMMAND ${CMAKE_CURRENT_BINARY_DIR}/unittest
          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})

@@ -10,9 +10,10 @@ include(set_project_version)
 
 set_project_version(1.2.4)
 
-set (CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+# Options
 option(MAEPARSER_RIGOROUS_BUILD "Abort the build if the compiler issues any warnings" OFF )
 option(MAEPARSER_BUILD_TESTS "Whether test executables should be built" ON)
 option(MAEPARSER_BUILD_SHARED_LIBS "Build maeparser as a shared library (turn off for a static one)" ON)
@@ -36,10 +37,12 @@ else(MSVC)
 endif(MSVC)
 endif(MAEPARSER_RIGOROUS_BUILD)
 
-file(GLOB mae_sources "*.cpp")
+# Source files & headers
+file(GLOB maeparser_sources "*.cpp")
 
+# Build Targets & Configuration
 if(MAEPARSER_BUILD_SHARED_LIBS)
-    add_library(maeparser SHARED ${mae_sources})
+    add_library(maeparser SHARED ${maeparser_sources})
     target_compile_definitions(maeparser PRIVATE "IN_MAEPARSER")
     target_compile_definitions(maeparser PRIVATE "BOOST_ALL_DYN_LINK")
     set_property(TARGET maeparser PROPERTY CXX_VISIBILITY_PRESET "hidden")
@@ -48,8 +51,8 @@ else(MAEPARSER_BUILD_SHARED_LIBS)
     if(NOT MSVC)
         set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
     endif()
-    add_library(maeparser STATIC ${mae_sources})
-    target_compile_definitions(maeparser PRIVATE "STATIC_MAEPARSER")
+    add_library(maeparser STATIC ${maeparser_sources})
+    target_compile_definitions(maeparser PUBLIC "STATIC_MAEPARSER")
 endif(MAEPARSER_BUILD_SHARED_LIBS)
 
 find_package(Boost COMPONENTS iostreams REQUIRED)
@@ -77,6 +80,7 @@ set_target_properties(maeparser
        COMPATIBLE_INTERFACE_STRING ${maeparser_VERSION_MAJOR}
 )
 
+# Install configuration
 configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake.in
     "${CMAKE_CURRENT_BINARY_DIR}/maeparser-config.cmake"
     INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake
