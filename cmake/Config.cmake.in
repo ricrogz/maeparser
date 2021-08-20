@@ -1,0 +1,7 @@
+@PACKAGE_INIT@
+
+include("${CMAKE_CURRENT_LIST_DIR}/maeparser-targets.cmake")
+
+check_required_components(maeparser)
+
+message(STATUS "Configuring with maeparser ${maeparser_VERSION} @ ${PACKAGE_PREFIX_DIR}")

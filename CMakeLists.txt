@@ -1,7 +1,17 @@
-set (CMAKE_CXX_STANDARD 11)
 cmake_minimum_required(VERSION 3.5)
 
 project(maeparser)
+
+set(CMAKE_MODULE_PATH
+    ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
+
+include(CMakePackageConfigHelpers)
+include(cmake_utils)
+
+set_project_version(1.2.4)
+
+set (CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 option(MAEPARSER_RIGOROUS_BUILD "Abort the build if the compiler issues any warnings" OFF )
 option(MAEPARSER_BUILD_TESTS "Whether test executables should be built" ON)
@@ -11,6 +21,11 @@ if(MSVC)
     # C4251 disables warnings for export STL containers as arguments (returning a vector of things)
     add_compile_options(/wd4251 /wd4275 /wd4996 /D_SCL_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_WARNINGS)
     add_definitions(-DBOOST_ALL_NO_LIB)
+
+    set(CMAKE_INSTALL_LIBDIR lib)
+    set(CMAKE_INSTALL_BINDIR bin)
+else(MSVC)
+    include(GNUInstallDirs)
 endif(MSVC)
 
 if(MAEPARSER_RIGOROUS_BUILD)
@@ -38,37 +53,40 @@ else(MAEPARSER_BUILD_SHARED_LIBS)
 endif(MAEPARSER_BUILD_SHARED_LIBS)
 
 find_package(Boost COMPONENTS iostreams REQUIRED)
-include_directories(${Boost_INCLUDE_DIRS})
-set(boost_libs ${Boost_LIBRARIES})
+target_link_libraries(maeparser PRIVATE Boost::iostreams)
 
 find_package(Boost COMPONENTS zlib QUIET)
 if(Boost_ZLIB_FOUND)
-    set(boost_libs ${boost_libs} ${Boost_LIBRARIES})
-    message(STATUS "Using Boost zlib module for iostreams dependency.")
+    message(STATUS "Using Boost::zlib for iostreams dependency.")
+    target_link_libraries(maeparser PRIVATE Boost::zlib)
 else(Boost_ZLIB_FOUND)
     find_package(ZLIB REQUIRED)
-    set(boost_libs ${boost_libs} ${ZLIB_LIBRARIES})
-    message(STATUS "Using zlib library for iostreams dependency.")
+    message(STATUS "Using ZLIB::ZLIB library for iostreams dependency.")
+    target_link_libraries(maeparser PRIVATE ZLIB::ZLIB)
 endif(Boost_ZLIB_FOUND)
-
-target_link_libraries(maeparser ${boost_libs})
-
-SET_TARGET_PROPERTIES (maeparser
-    PROPERTIES
-       VERSION 1.2.4
-       SOVERSION 1
-)
 
 target_include_directories(maeparser PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-    $<INSTALL_INTERFACE:include>)
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
-if(MSVC)
-    set(CMAKE_INSTALL_LIBDIR lib)
-    set(CMAKE_INSTALL_BINDIR bin)
-else(MSVC)
-    include(GNUInstallDirs)
-endif(MSVC)
+set_target_properties(maeparser
+    PROPERTIES
+       VERSION ${maeparser_VERSION}
+       SOVERSION ${maeparser_VERSION_MAJOR}
+       INTERFACE_maeparser_MAJOR_VERSION ${maeparser_VERSION_MAJOR}
+       COMPATIBLE_INTERFACE_STRING ${maeparser_VERSION_MAJOR}
+)
+
+configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake.in
+    "${CMAKE_CURRENT_BINARY_DIR}/maeparser-config.cmake"
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake
+)
+
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/maeparser-config-version.cmake"
+    VERSION ${maeparser_VERSION}
+    COMPATIBILITY SameMajorVersion
+)
 
 install(TARGETS maeparser
     EXPORT maeparser-targets
@@ -77,11 +95,18 @@ install(TARGETS maeparser
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 INSTALL(EXPORT maeparser-targets
-    FILE ${PROJECT_NAME}-config.cmake
-    DESTINATION lib/cmake)
+    FILE maeparser-targets.cmake
+    NAMESPACE maeparser::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake)
 
 file(GLOB mae_headers "*.hpp")
-install(FILES ${mae_headers} DESTINATION include/maeparser)
+install(FILES ${mae_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/maeparser)
+
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/maeparser-config.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/maeparser-config-version.cmake"
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake
+)
 
 # Tests
 if (MAEPARSER_BUILD_TESTS)
