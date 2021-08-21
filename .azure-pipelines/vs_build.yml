@@ -35,7 +35,7 @@ steps:
   - script: |
       set Boost_ROOT=
       set install_dir=%cd%/install
-      set PATH="%install_dir%\bin:%PATH%"
+      set PATH=%install_dir%/bin;%PATH%
       call activate maeparser_build
       cd cmake/cmake_exports_test && ^
       cmake . ^

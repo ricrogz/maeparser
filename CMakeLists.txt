@@ -21,7 +21,6 @@ option(MAEPARSER_BUILD_SHARED_LIBS "Build maeparser as a shared library (turn of
 if(MSVC)
     # C4251 disables warnings for export STL containers as arguments (returning a vector of things)
     add_compile_options(/wd4251 /wd4275 /wd4996 /D_SCL_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_WARNINGS)
-    add_compile_options(-DBOOST_ALL_NO_LIB)
 
     set(CMAKE_INSTALL_BINDIR bin)
     set(CMAKE_INSTALL_LIBDIR lib)
@@ -31,11 +30,11 @@ else()
 endif()
 
 if(MAEPARSER_RIGOROUS_BUILD)
-if(MSVC)
-    add_compile_options(/WX)
-else()
-    add_compile_options(-Wall -Wextra -Werror)
-endif()
+    if(MSVC)
+        add_compile_options(/WX)
+    else()
+        add_compile_options(-Wall -Wextra -Werror)
+    endif()
 endif()
 
 # Source files & headers
@@ -45,22 +44,29 @@ file(GLOB maeparser_sources "*.cpp")
 if(MAEPARSER_BUILD_SHARED_LIBS)
     add_library(maeparser SHARED ${maeparser_sources})
     target_compile_definitions(maeparser PRIVATE "IN_MAEPARSER")
-    target_compile_definitions(maeparser PRIVATE "BOOST_ALL_DYN_LINK")
+    target_link_libraries(maeparser PUBLIC Boost::dynamic_linking)
     set_property(TARGET maeparser PROPERTY CXX_VISIBILITY_PRESET "hidden")
 else()
-    set(Boost_USE_STATIC_LIBS ON)
-    if(NOT MSVC)
-        set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-    endif()
     add_library(maeparser STATIC ${maeparser_sources})
     target_compile_definitions(maeparser PUBLIC "STATIC_MAEPARSER")
+    if(MSVC)
+        set(Boost_USE_STATIC_LIBS ON)
+    endif()
+endif()
+
+# Prevent from trying to use the "lib" prefix on windows.
+# We want to propagate it to targets down the road.
+if(MSVC)
+    target_link_libraries(maeparser PUBLIC Boost::disable_autolinking)
 endif()
 
 find_package(Boost COMPONENTS iostreams REQUIRED)
 target_link_libraries(maeparser PUBLIC Boost::iostreams)
 
-find_package(Boost COMPONENTS zlib QUIET)
-if(Boost_ZLIB_FOUND)
+# If boost has the zlib component, then iostreams will probably
+# depend on it, so try it first before resorting to ZLIB.
+find_package(Boost COMPONENTS zlib)
+if(Boost_zlib_FOUND)
     message(STATUS "Using Boost::zlib for iostreams dependency.")
     target_link_libraries(maeparser PUBLIC Boost::zlib)
 else()

@@ -2,14 +2,20 @@ cmake_minimum_required(VERSION 3.5)
 
 project(maeparser_export_check)
 
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+
 if(MSVC)
     # C4251 disables warnings for export STL containers as arguments (returning a vector of things)
     add_compile_options(/wd4251 /wd4275 /wd4996 /D_SCL_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_WARNINGS)
+    if(NOT MAEPARSER_BUILD_SHARED_LIBS)
+        set(Boost_USE_STATIC_LIBS ON)
+    endif()
 endif()
 
 find_package(maeparser REQUIRED)
 
 add_executable(maeparser_export_check main.cpp)
 
-target_link_libraries(maeparser_export_check maeparser::maeparser)
+target_link_libraries(maeparser_export_check PRIVATE maeparser::maeparser)
 
