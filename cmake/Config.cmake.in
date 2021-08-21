@@ -23,4 +23,6 @@ else()
 find_dependency(Boost @Boost_VERSION_STRING@ COMPONENTS zlib REQUIRED)
 endif()
 
-message(STATUS "Found a CMake config file for maeparser ${maeparser_VERSION} @ ${maeparser_DIR}")
+if (NOT maeparser_FIND_QUIETLY)
+    message(STATUS "Found a CMake config file for maeparser ${maeparser_VERSION} @ ${maeparser_DIR}")
+endif()
