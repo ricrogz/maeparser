@@ -25,15 +25,16 @@ steps:
       conda activate maeparser_build
       export SDKROOT="$(pwd)/MacOSX$(target_platform).sdk/"
       export CONDA_BUILD_SYSROOT=${SDKROOT}
+      install_dir=$(pwd)/install
       mkdir build && cd build && \
       cmake .. \
       -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=${install_dir} \
+      -DCMAKE_PREFIX_PATH="${CONDA_PREFIX}" \
       -DMAEPARSER_RIGOROUS_BUILD=ON \
       -DBoost_NO_SYSTEM_PATHS=ON \
       -DCMAKE_OSX_SYSROOT=${SDKROOT} \
       -DCMAKE_OSX_DEPLOYMENT_TARGET=$(target_platform) \
-      -DCMAKE_INCLUDE_PATH="${CONDA_PREFIX}/include" \
-      -DCMAKE_LIBRARY_PATH="${CONDA_PREFIX}/lib" \
       -DMAEPARSER_BUILD_SHARED_LIBS=$(shared_lib)
     displayName: Configure build (Run CMake)
   - bash: |
@@ -42,7 +43,7 @@ steps:
       export SDKROOT="$(pwd)/MacOSX$(target_platform).sdk/"
       export CONDA_BUILD_SYSROOT=${SDKROOT}
       cd build
-      make -j $( $(number_of_cores) )
+      make -j $( $(number_of_cores) ) install
     displayName: Build
   - bash: |
       source ${CONDA}/etc/profile.d/conda.sh
@@ -53,6 +54,20 @@ steps:
       cd build
       ctest -j $( $(number_of_cores) ) --output-on-failure -T Test
     displayName: Run tests
+  - bash: |
+      source ${CONDA}/etc/profile.d/conda.sh
+      conda activate maeparser_build
+      export DYLD_FALLBACK_LIBRARY_PATH=${CONDA_PREFIX}/lib:${DYLD_FALLBACK_LIBRARY_PATH}
+      export SDKROOT="$(pwd)/MacOSX$(target_platform).sdk/"
+      export CONDA_BUILD_SYSROOT=${SDKROOT}
+      install_dir=$(pwd)/install
+      cd cmake/cmake_exports_test && \
+      cmake . \
+      -DCMAKE_PREFIX_PATH="${CONDA_PREFIX}" \
+      -Dmaeparser_DIR="${install_dir}/lib/cmake" && \
+      make -j $( $(number_of_cores) ) && \
+      ./maeparser_export_check
+    displayName: Test CMake exports
   - task: PublishTestResults@2
     inputs:
       testResultsFormat: "CTest"

@@ -10,27 +10,43 @@ steps:
     displayName: Install dependencies
   - script: |
       set Boost_ROOT=
+      set install_dir=%cd%/install
       mkdir build && cd build
       call activate maeparser_build
       cmake .. ^
       -G "Visual Studio 15 2017 Win64" ^
       -DCMAKE_BUILD_TYPE=Release ^
+      -DCMAKE_INSTALL_PREFIX=%install_dir% ^
+      -DCMAKE_PREFIX_PATH="%CONDA_PREFIX%/Library" ^
       -DMAEPARSER_RIGOROUS_BUILD=ON ^
       -DBoost_NO_SYSTEM_PATHS=ON ^
-      -DCMAKE_INCLUDE_PATH=%CONDA_PREFIX%/Library/include ^
-      -DCMAKE_LIBRARY_PATH=%CONDA_PREFIX%/Library/lib ^
       -DMAEPARSER_BUILD_SHARED_LIBS=$(shared_lib)
     displayName: Configure build (Run CMake)
   - script: |
       call activate maeparser_build
       cd build
-      cmake --build . --config Release -j $(number_of_cores)
+      cmake --build . --config Release -j $(number_of_cores) --target install
     displayName: Build
   - script: |
       call activate maeparser_build
       cd build
       ctest -j $(number_of_cores) --output-on-failure -T Test -C Release
     displayName: Run tests
+  - script: |
+      set Boost_ROOT=
+      set install_dir=%cd%/install
+      set PATH="%install_dir%\bin:%PATH%"
+      call activate maeparser_build
+      cd cmake/cmake_exports_test && ^
+      cmake . ^
+      -G "Visual Studio 15 2017 Win64" ^
+      -DCMAKE_BUILD_TYPE=Release ^
+      -DCMAKE_PREFIX_PATH="%CONDA_PREFIX%/Library" ^
+      -DBoost_NO_SYSTEM_PATHS=ON ^
+      -Dmaeparser_DIR="%install_dir%/lib/cmake" && ^
+      cmake --build . --config Release -j $(number_of_cores) && ^
+      Release\maeparser_export_check.exe
+    displayName: Test CMake exports
   - task: PublishTestResults@2
     inputs:
       testResultsFormat: "CTest"

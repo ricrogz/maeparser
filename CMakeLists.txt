@@ -21,10 +21,11 @@ option(MAEPARSER_BUILD_SHARED_LIBS "Build maeparser as a shared library (turn of
 if(MSVC)
     # C4251 disables warnings for export STL containers as arguments (returning a vector of things)
     add_compile_options(/wd4251 /wd4275 /wd4996 /D_SCL_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_WARNINGS)
-    add_definitions(-DBOOST_ALL_NO_LIB)
+    add_compile_options(-DBOOST_ALL_NO_LIB)
 
-    set(CMAKE_INSTALL_LIBDIR lib)
     set(CMAKE_INSTALL_BINDIR bin)
+    set(CMAKE_INSTALL_LIBDIR lib)
+    set(CMAKE_INSTALL_INCLUDEDIR include)
 else()
     include(GNUInstallDirs)
 endif()
@@ -35,7 +36,7 @@ if(MSVC)
 else()
     add_compile_options(-Wall -Wextra -Werror)
 endif()
-endif(MAEPARSER_RIGOROUS_BUILD)
+endif()
 
 # Source files & headers
 file(GLOB maeparser_sources "*.cpp")
