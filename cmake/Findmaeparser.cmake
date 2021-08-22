@@ -3,7 +3,7 @@
 # If the package is found, This will set up the maeparser::maeparser target
 # and the following variables:
 #
-# maeparser_DIR           - absolute path to maeparser's top directory
+# maeparser_ROOT           - absolute path to maeparser's top directory
 #
 # maeparser_INCLUDE_DIRS  - maeparser's includes directory
 # maeparser_LIBRARIES     - maeparser's shared libraries
@@ -22,13 +22,13 @@ find_package(maeparser NO_MODULE
 
 find_path(maeparser_INCLUDE_DIRS
     NAMES "maeparser/Reader.hpp"
-    PATHS ${maeparser_DIR}
+    PATHS ${maeparser_ROOT}
     PATH_SUFFIXES "include"
     DOC "include path for maeparser")
 
 find_library(maeparser_LIBRARIES
     NAMES maeparser
-    PATHS ${maeparser_DIR}
+    PATHS ${maeparser_ROOT}
     PATH_SUFFIXES "lib" "lib64"
     DOC "libraries for maeparser")
 
