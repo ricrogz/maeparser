@@ -16,8 +16,8 @@ add_test(NAME unittest COMMAND ${CMAKE_CURRENT_BINARY_DIR}/unittest
          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
 if(MSVC AND MAEPARSER_BUILD_SHARED_LIBS)
-    add_custom_command(TARGET unittest POST_BUILD COMMAND ${CMAKE_COMMAND}
-    -E copy_if_different "${PROJECT_BINARY_DIR}/\$\(Configuration\)/maeparser.dll"
-    "${CMAKE_CURRENT_BINARY_DIR}/\$\(Configuration\)/maeparser.dll")
-endif(MSVC AND MAEPARSER_BUILD_SHARED_LIBS)
-
+    file(TO_NATIVE_PATH "$<TARGET_FILE_DIR:maeparser>" DLL_PATH_ENV)
+    set(DLL_PATH_ENV "${DLL_PATH_ENV};$ENV{PATH}")
+    string(REPLACE ";" "\\;" DLL_PATH_ENV "${DLL_PATH_ENV}")
+    set_tests_properties(unittest PROPERTIES ENVIRONMENT "PATH=${DLL_PATH_ENV}")
+endif()
