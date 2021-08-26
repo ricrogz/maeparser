@@ -36,7 +36,7 @@ find_package_handle_standard_args(maeparser
     REQUIRED_VARS maeparser_INCLUDE_DIRS maeparser_LIBRARIES
     VERSION_VAR maeparser_VERSION)
 
-if (NOT TARGET maeparser::maeparser)
+if (maeparser-FOUND AND (NOT TARGET maeparser::maeparser))
     add_library(maeparser INTERFACE)
     add_library(maeparser::maeparser ALIAS maeparser)
 
@@ -44,5 +44,5 @@ if (NOT TARGET maeparser::maeparser)
     $<BUILD_INTERFACE:${maeparser_INCLUDE_DIRS}>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
-    target_link_libraries(maeparser ${maeparser_LIBRARIES})
+    target_link_libraries(maeparser INTERFACE ${maeparser_LIBRARIES})
 endif()
